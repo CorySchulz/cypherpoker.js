@@ -15,7 +15,7 @@ var appVersion = "0.5.1";
 * @property {String} appName The name of the application. This information
 * is prepended to the {@link appTitle}.
 */
-var appName = "CypherPoker.JS";
+var appName = "tomo.poker";
 /**
 * @property {String} appTitle The title of the application as it should appear in
 * the main browser window / tab and any new windows / tabs. If running as a desktop
@@ -86,6 +86,7 @@ const _require = [
    {"url":"./scripts/libs/WorkerHost.js"},
    {"url":"./scripts/libs/SRACrypto.js"},
    {"url":"./scripts/libs/BigInteger.min.js"},
+	{"url": "https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.1/dist/web3.min.js"},
    {"url":"./scripts/CypherPokerGame.js"},
    {"url":"./scripts/CypherPokerPlayer.js"},
    {"url":"./scripts/CypherPokerAccount.js"},
