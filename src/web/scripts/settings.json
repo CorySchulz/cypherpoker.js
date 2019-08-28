@@ -3,7 +3,7 @@
       "connectInfo":{
          "create":"return (new P2PRouter())",
          "transport":"wss",
-         "url":"ws://127.0.0.1:8090"
+         "url":"wss://cypherpokerjs-servicesserver-sawmlcgsuw.now.sh"
       },
       "transports": {
          "preferred":["webrtc","wss","ortc"],
@@ -14,12 +14,12 @@
       "connectInfo":{
          "create":"return (new APIRouter())",
          "transport":"wss",
-         "url":"ws://127.0.0.1:8090"
+         "url":"wss://cypherpokerjs-servicesserver-sawmlcgsuw.now.sh"
       }
    },
    "crypto":{
       "create":"return (new SRACrypto(4))",
-      "bitLength": 512,
+      "bitLength": 768,
       "radix": 16
    },
    "rootPeers": {

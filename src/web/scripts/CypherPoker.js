@@ -225,9 +225,11 @@ class CypherPoker extends EventDispatcher {
    async start(options=null) {
       this.debug ("CypherPoker.start()");
       //parse startup options, if provided
+      this._urlParams = null;
       if (options != null) {
          try {
             if (options.urlParams != undefined) {
+               this._urlParams = options.urlParams;
                try {
                   await this.processURLParams(options.urlParams);
                } catch (err) {
@@ -273,6 +275,67 @@ class CypherPoker extends EventDispatcher {
          if (urlParams.has("api.type") == true) {
             this.settings.api.connectInfo.type = urlParams.get("api.type");
          }
+         this.settings.testnet = false; //disabled by default (use mainnet), only certain conditions will enable testnet:
+         if (urlParams.has("testnet") == true) {
+            switch (typeof(urlParams.get("testnet"))) {
+              case "string":
+                switch (urlParams.get("testnet").toLowerCase()) {
+                  case "true":
+                    this.settings.testnet = true;
+                    break;
+                  case "false":
+                    this.settings.testnet = false;
+                    break;
+                  case "t":
+                    this.settings.testnet = true;
+                    break;
+                  case "f":
+                    this.settings.testnet = false;
+                    break;
+                  case "on":
+                    this.settings.testnet = true;
+                    break;
+                  case "off":
+                    this.settings.testnet = false;
+                    break;
+                  case "enable":
+                    this.settings.testnet = true;
+                    break;
+                  case "disable":
+                    this.settings.testnet = false;
+                    break;
+                  case "enabled":
+                    this.settings.testnet = true;
+                    break;
+                  case "disabled":
+                    this.settings.testnet = false;
+                    break;
+                  case "1":
+                    this.settings.testnet = true;
+                    break;
+                  case "0":
+                    this.settings.testnet = false;
+                    break;
+                }
+                break;
+              case "number":
+                if (urlParams.get("testnet") == 1) {
+                  this.settings.testnet = true;
+                } else {
+                  this.settings.testnet = false;
+                }
+              case "boolean":
+                this.settings.testnet = urlParams.get("testnet");
+                break;
+              default:
+                try {
+                    this.settings.testnet = new Boolean(urlParams.get("testnet"));
+                } catch (err) {
+                  this.settings.testnet = false;
+                }
+                break;
+            }
+         }
          //SDB will overwrite any other settings specified
          if (urlParams.has("sdb") == true) {
             var sdb = new SDB();
@@ -308,6 +371,18 @@ class CypherPoker extends EventDispatcher {
    */
    get settings() {
       return (this._settings);
+   }
+
+   /**
+   * @property {Object} urlParams=null The parsed url parameters object, as provided in
+   * [start]{@link start}.
+   * @readonly
+   */
+   get urlParams() {
+      if (this._urlParams == undefined) {
+        this._urlParams = null;
+      }
+      return (this._urlParams);
    }
 
    /**

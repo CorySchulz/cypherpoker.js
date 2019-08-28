@@ -967,7 +967,18 @@ class CypherPokerUI {
             this.hide(this.getTemplateByName("firstRun").elements[0]);
             element = this.getTemplateByName("accountCreate").elements[0];
             var accountTypeSelect = element.querySelector("#newAccountType");
-            var accountType = accountTypeSelect.options[accountTypeSelect.selectedIndex].value;
+            //var accountType = accountTypeSelect.options[accountTypeSelect.selectedIndex].value;
+            //Type is set explictly in the url now:
+            if (this.cypherpoker.settings.testnet == true) {
+              var accountType = "tomochain/test";
+            } else {
+              accountType = "tomochain/main";
+            }
+            / * TEMP */
+            this.showDialog("Creating account type: "+accountType+"<br/><br/><b>To Be Implemented!</b>");
+            this.hideDialog(4000);
+            return (false);
+            / * TEMP */
             var password = element.querySelector("#newAccountPassword").value;
             if (password.split(" ").join("") == "") {
                //insert additional password valifity checks here
@@ -979,19 +990,6 @@ class CypherPokerUI {
             this.cypherpoker.createAccount(typeSplit[0], password, typeSplit[1]).then(newAccount => {
                this.hide(element);
                element = this.getTemplateByName("help").elements[0];
-               if (typeSplit[0] == "bitcoin") {
-                  if (typeSplit[1] == "test3") {
-                     var helpElement = element.querySelector("#new_account_btc_test3");
-                  } else {
-                     helpElement = element.querySelector("#new_account_btc");
-                  }
-               } else if (typeSplit[0] == "bitcoincash") {
-                  if (typeSplit[1] == "test") {
-                     var helpElement = element.querySelector("#new_account_bch_test");
-                  } else {
-                     helpElement = element.querySelector("#new_account_bch");
-                  }
-               }
                helpElement.innerHTML = helpElement.innerHTML.split("%address%").join(newAccount.address);
                helpElement.innerHTML = helpElement.innerHTML.split("%depositfee%").join(newAccount.fees.deposit);
                this.show(helpElement);

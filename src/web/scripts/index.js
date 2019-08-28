@@ -22,7 +22,7 @@ var appName = "tomo.poker";
 * (Electron) application, this is the name that appears on all child windows of
 * the main process.
 */
-var appTitle = appName+" v"+appVersion;
+var appTitle = appName; //+" v"+appVersion;
 /**
 * @property {String} _settingsURL="./scripts/settings.json" The URL of the main
 * settings JSON file.
@@ -72,6 +72,7 @@ var ipcID = null;
 * @private
 */
 const _require = [
+    /* supporting libraries */
    {"url":"./scripts/libs/Polyfills.js"},
    {"url":"./scripts/libs/EventDispatcher.js"},
    {"url":"./scripts/libs/EventPromise.js"},
@@ -86,7 +87,9 @@ const _require = [
    {"url":"./scripts/libs/WorkerHost.js"},
    {"url":"./scripts/libs/SRACrypto.js"},
    {"url":"./scripts/libs/BigInteger.min.js"},
-	{"url": "https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.1/dist/web3.min.js"},
+   /* external libraries */
+	 {"url": "https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.1/dist/web3.min.js"},
+   /* game / UI scripts */
    {"url":"./scripts/CypherPokerGame.js"},
    {"url":"./scripts/CypherPokerPlayer.js"},
    {"url":"./scripts/CypherPokerAccount.js"},
