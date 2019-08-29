@@ -3,26 +3,26 @@
 * CypherPoker.JS. Also provides functionality for dynamic loading of additional
 * scripts and JSON data.
 *
-* @version 0.4.1
+* @version 0.5.1
 */
 
 /**
 * @property {String} appVersion The version of the application. This information
 * is appended to the {@link appTitle}.
 */
-var appVersion = "0.5.0";
+var appVersion = "0.5.1";
 /**
 * @property {String} appName The name of the application. This information
 * is prepended to the {@link appTitle}.
 */
-var appName = "CypherPoker.JS";
+var appName = "tomo.poker";
 /**
 * @property {String} appTitle The title of the application as it should appear in
 * the main browser window / tab and any new windows / tabs. If running as a desktop
 * (Electron) application, this is the name that appears on all child windows of
 * the main process.
 */
-var appTitle = appName+" v"+appVersion;
+var appTitle = appName; //+" v"+appVersion;
 /**
 * @property {String} _settingsURL="./scripts/settings.json" The URL of the main
 * settings JSON file.
@@ -72,6 +72,7 @@ var ipcID = null;
 * @private
 */
 const _require = [
+    /* supporting libraries */
    {"url":"./scripts/libs/Polyfills.js"},
    {"url":"./scripts/libs/EventDispatcher.js"},
    {"url":"./scripts/libs/EventPromise.js"},
@@ -86,6 +87,9 @@ const _require = [
    {"url":"./scripts/libs/WorkerHost.js"},
    {"url":"./scripts/libs/SRACrypto.js"},
    {"url":"./scripts/libs/BigInteger.min.js"},
+   /* external libraries */
+	 {"url": "https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.1/dist/web3.min.js"},
+   /* game / UI scripts */
    {"url":"./scripts/CypherPokerGame.js"},
    {"url":"./scripts/CypherPokerPlayer.js"},
    {"url":"./scripts/CypherPokerAccount.js"},
