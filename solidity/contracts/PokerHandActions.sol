@@ -1,22 +1,22 @@
 pragma solidity ^0.4.5;
 /**
-* 
-* Processes full-cost ("full contract"), unsigned actions and transactions for an authorizing PokerHandData contract.
-* 
-* (C)opyright 2016 to 2017
 *
-* This source code is protected by copyright and distributed under license.
+* Processes full-cost ("full contract"), unsigned actions and transactions for an authorizing PokerHandData contract.
+*
+* (C)opyright 2019
+*
+* This source code is protected by copyright and distributed under the MIT license.
 * Please see the root LICENSE file for terms and conditions.
 *
 */
-contract PokerHandActions { 
-    
+contract PokerHandActions {
+
     address public owner; //the contract's owner / publisher
-   
+
   	function PokerHandActions() {
 		owner = msg.sender;
     }
-	
+
 	/**
 	* Anonymous fallback function.
 	*/
@@ -28,25 +28,25 @@ contract PokerHandActions {
      * Records a bet for the sending player in "playerBets", updates the "pot", subtracts the value from their "playerChips" total.
      * The sending player must have agreed, it must be their turn to bet according to the "betPosition" index, the bet value must
      * be less than or equal to the player's available "playerChips" value, and all players must be at a valid betting phase (4, 7, 10, or 13).
-     * 
-     * Player bets are automatically added to the "pot" and when all players' bets are equal they (bets) are reset to 0 and 
+     *
+     * Player bets are automatically added to the "pot" and when all players' bets are equal they (bets) are reset to 0 and
      * their phases are automatically incremented.
-     * 
+     *
      * @param betValue The bet, in wei, being placed by the player.
      */
-	function storeBet (address dataAddr, uint256 betValue) public  {	
-		PokerHandData dataStorage = PokerHandData(dataAddr);	
+	function storeBet (address dataAddr, uint256 betValue) public  {
+		PokerHandData dataStorage = PokerHandData(dataAddr);
 		if (dataStorage.agreed(msg.sender) == false) {
 		    throw;
 		}
-	    if ((dataStorage.allPlayersAtPhase(4) == false) && (dataStorage.allPlayersAtPhase(7) == false) && 
-			(dataStorage.allPlayersAtPhase(10) == false) && (dataStorage.allPlayersAtPhase(13) == false)) {			
+	    if ((dataStorage.allPlayersAtPhase(4) == false) && (dataStorage.allPlayersAtPhase(7) == false) &&
+			(dataStorage.allPlayersAtPhase(10) == false) && (dataStorage.allPlayersAtPhase(13) == false)) {
             throw;
         }
-        if (dataStorage.playerChips(msg.sender) < betValue) {			
+        if (dataStorage.playerChips(msg.sender) < betValue) {
             throw;
         }
-        if (dataStorage.players(dataStorage.betPosition()) != msg.sender) {			
+        if (dataStorage.players(dataStorage.betPosition()) != msg.sender) {
             throw;
         }
         if (dataStorage.players(1) == msg.sender) {
@@ -56,7 +56,7 @@ contract PokerHandActions {
                 dataStorage.set_playerHasBet(msg.sender, true);
             }
         } else {
-			dataStorage.set_playerHasBet(msg.sender, true);  
+			dataStorage.set_playerHasBet(msg.sender, true);
         }
         dataStorage.set_playerBets(msg.sender, dataStorage.playerBets(msg.sender) + betValue);
         dataStorage.set_playerChips(msg.sender, dataStorage.playerChips(msg.sender) - betValue);
@@ -81,13 +81,13 @@ contract PokerHandActions {
 		    dataStorage.set_betPosition(0);
 		}
     }
-	
+
 	 /**
      * Checks if all players have bet during this round of betting by analyzing the playerHasBet mapping.
-     * 
+     *
      * @param reset If all players have bet, all playerHasBet entries are set to false if this parameter is true. If false
      * then the values of playerHasBet are not affected.
-     * 
+     *
      * @return True if all players have bet during this round of betting.
      */
     function allPlayersHaveBet(address dataAddr, bool reset) public constant returns (bool) {
@@ -103,29 +103,29 @@ contract PokerHandActions {
             }
         }
         return (true);
-    }	 
-	 
+    }
+
     /**
      * Records a "fold" action for a player. The player must exist in the "players" array, must have agreed, and must be at a valid
      * betting phase (4,7,10), and it must be their turn to bet according to the "betPosition" index. When fold is correctly invoked
-     * any unspent wei in the player's chips are refunded, as opposed to simply abandoning the contract in which case those chips 
+     * any unspent wei in the player's chips are refunded, as opposed to simply abandoning the contract in which case those chips
      * are not refunded.
-     * 
+     *
      * Once a player folds correctly they are removed from the "players" array and the betting position is adjusted if necessary. If
-     * only one other player remains active in the contract they receive the pot plus their remaining chips while other (folded) players 
+     * only one other player remains active in the contract they receive the pot plus their remaining chips while other (folded) players
      * receive their remaining chips.
      */
-    function fold(address dataAddr) public  {	
+    function fold(address dataAddr) public  {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
-        if (dataStorage.agreed(msg.sender) == false) {			
+        if (dataStorage.agreed(msg.sender) == false) {
 		    throw;
 		}
 		if (dataStorage.lastActionBlock() > 0) {
-			if ((dataStorage.allPlayersAtPhase(4) == false) && (dataStorage.allPlayersAtPhase(7) == false) && 
-				(dataStorage.allPlayersAtPhase(10) == false) && (dataStorage.allPlayersAtPhase(13) == false)) {            
+			if ((dataStorage.allPlayersAtPhase(4) == false) && (dataStorage.allPlayersAtPhase(7) == false) &&
+				(dataStorage.allPlayersAtPhase(10) == false) && (dataStorage.allPlayersAtPhase(13) == false)) {
 				throw;
 			}
-			if (dataStorage.players(dataStorage.betPosition()) != msg.sender) {            
+			if (dataStorage.players(dataStorage.betPosition()) != msg.sender) {
 				throw;
 			}
 		}
@@ -145,21 +145,21 @@ contract PokerHandActions {
             //game may continue
             dataStorage.new_players(newPlayersArray);
 			if (dataStorage.lastActionBlock() > 0) {
-				dataStorage.set_betPosition (dataStorage.betPosition() % dataStorage.num_Players()); 
+				dataStorage.set_betPosition (dataStorage.betPosition() % dataStorage.num_Players());
 			}
         }
 		if (dataStorage.lastActionBlock() > 0) {
 			dataStorage.set_lastActionBlock (block.number);
 		}
     }
-    
+
     /**
-     * Declares the sending player as a winner. Sending player must have agreed to contract and all players must be at be 
+     * Declares the sending player as a winner. Sending player must have agreed to contract and all players must be at be
      * at phase 14. A winning player may only be declared once at which point all players' phases are updated to 15.
-     * 
+     *
      * A declared winner may be challenged before timeoutBlocks have elapsed, or later if resolveWinner hasn't yet
      * been called.
-     * 
+     *
      */
     function declareWinner(address dataAddr, address winnerAddr) public {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
@@ -175,45 +175,45 @@ contract PokerHandActions {
         }
 		dataStorage.set_lastActionBlock(block.number);
     }
-	
+
 	/**
      * Pays out the contract's value by sending the pot + winner's remaining chips to the winner and sending the othe player's remaining chips
      * to them. When all amounts have been paid out, "pot" and all "playerChips" are set to 0 as is the "winner" address. All players'
      * phases are set to 18 and the reset function is invoked.
-     * 
+     *
      * The "winner" address must be set prior to invoking this call.
      */
-    function payout(address dataAddr) private {		
+    function payout(address dataAddr) private {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
         if (dataStorage.num_winner() == 0) {
             throw;
         }
         for (uint count=0; count<dataStorage.num_winner(); count++) {
             if ((dataStorage.pot() / dataStorage.num_winner()) + dataStorage.playerChips(dataStorage.winner(count)) > 0) {
-				if (dataStorage.pay(dataStorage.winner(count), 
-					(dataStorage.pot() / dataStorage.num_winner()) 
-						+ dataStorage.playerChips(dataStorage.winner(count)))) {                
+				if (dataStorage.pay(dataStorage.winner(count),
+					(dataStorage.pot() / dataStorage.num_winner())
+						+ dataStorage.playerChips(dataStorage.winner(count)))) {
                     dataStorage.set_pot(0);
-					dataStorage.set_playerChips(dataStorage.winner(count), 0);                    
+					dataStorage.set_playerChips(dataStorage.winner(count), 0);
                 }
             }
         }
          for (count=0; count < dataStorage.num_Players(); count++) {
             dataStorage.set_phase(dataStorage.players(count), 18);
             if (dataStorage.playerChips(dataStorage.players(count)) > 0) {
-				if (dataStorage.pay (dataStorage.players(count), dataStorage.playerChips(dataStorage.players(count)))) {                
+				if (dataStorage.pay (dataStorage.players(count), dataStorage.playerChips(dataStorage.players(count)))) {
                     dataStorage.set_playerChips(dataStorage.players(count), 0);
                 }
             }
         }
 		dataStorage.set_complete (true);
-    }	
+    }
 }
 
-contract PokerHandData {    
+contract PokerHandData {
 	struct Card {
         uint index;
-        uint suit; 
+        uint suit;
         uint value;
     }
 	struct CardGroup {
@@ -248,8 +248,8 @@ contract PokerHandData {
     DecryptPrivateCardsStruct[] public privateDecryptCards;
     uint256[5] public publicCards;
 	mapping (address => uint256[5]) public publicDecryptCards;
-    mapping (address => Key[]) public playerKeys;    
-    mapping (address => uint[5]) public playerBestHands; 
+    mapping (address => Key[]) public playerKeys;
+    mapping (address => uint[5]) public playerBestHands;
     mapping (address => Card[]) public playerCards;
     mapping (address => uint256) public results;
     mapping (address => address) public declaredWinner;
