@@ -1,32 +1,32 @@
-pragma solidity ^0.4.5;
+pragma solidity ^0.5.8;
 /**
-* 
+*
 * Processes light, low-cost, signed actions, transactions, and resolutions for an authorizing PokerHandData contract.
-* 
+*
 * (C)opyright 2016 to 2017
 *
 * This source code is protected by copyright and distributed under license.
 * Please see the root LICENSE file for terms and conditions.
 *
 */
-contract PokerHandSignedActions { 
-    
-    address public owner; //the contract's owner / publisher   
-   
+contract PokerHandSignedActions {
+
+    address public owner; //the contract's owner / publisher
+
   	/**
 	* Contract constructor.
 	*/
-	function PokerHandSignedActions() {
+	constructor() public {
 		owner = msg.sender;
-    }
-	
+  }
+
 	/**
 	* Anonymous fallback function.
 	*/
-	function () {
-		throw;
+	function () external {
+		revert();
     }
-	
+
 	/**
 	* Ends a hand played using signed transactions by updating players' bets. Once all players have invoked this function with
 	* matching parameters the bet chips are awarded to the stated winner(s) and the poker hand data contract is reset for the next hand.
@@ -38,13 +38,13 @@ contract PokerHandSignedActions {
 	* @param playerBets The bets, in wei, committed by the players listed in the 'players' parameter. The order of bets must match
 	* the order of players in the 'players' parameter.
 	*/
-	function endHand(address dataAddr, address[] winnerAddr, address[] players, uint256[] playerBets) public {
+	function endHand(address dataAddr, address[] memory winnerAddr, address[] memory players, uint256[] memory playerBets) public {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
 		if (dataStorage.agreed(msg.sender) == false) {
-			throw;
+			revert();
 		}
 		if (dataStorage.phases(msg.sender) > 19) {
-			throw;
+			revert();
 		}
 		uint matchingWinners = 0;
 		for (uint count=0; count<winnerAddr.length; count++) {
@@ -58,39 +58,39 @@ contract PokerHandSignedActions {
 			}
 			matchingWinners=0;
 		}
-		for (count=0; count<players.length; count++) {
+		for (uint8 count=0; count<players.length; count++) {
 			dataStorage.set_playerBets(players[count], playerBets[count]);
-		}			
+		}
 		dataStorage.set_complete(true);
 		dataStorage.set_phase(msg.sender, 20);
 		if (dataStorage.allPlayersAtPhase(20)) {
 			//TODO: make this work for more than 2 players!
-			for (count=0; count<players.length; count++) {
+			for (uint8 count=0; count<players.length; count++) {
 				if (dataStorage.playerBets(players[count]) != playerBets[count]) {
 					//supplied bet value doesn't match value set by other player(s); initiate challenge!
-					throw;
+					revert();
 				}
 			}
 			matchingWinners = 0;
-			for (count=0; count<winnerAddr.length; count++) {
-				for (count2=0; count2<dataStorage.num_winner(); count2++) {
+			for (uint8 count=0; count<winnerAddr.length; count++) {
+				for (uint8 count2=0; count2<dataStorage.num_winner(); count2++) {
 					if (winnerAddr[count] == dataStorage.winner(count2)) {
 						matchingWinners++;
 					}
 				}
 			}
 			if (matchingWinners != winnerAddr.length) {
-				throw;
+				revert();
 			}
 			uint pot = 0;
-			for (count=0; count < players.length; count++) {
+			for (uint8 count=0; count < players.length; count++) {
 				pot += playerBets[count];
 				dataStorage.set_playerChips(players[count], dataStorage.playerChips(players[count]) - playerBets[count]);
 			}
-			for (count=0; count<winnerAddr.length; count++) {
+			for (uint8 count=0; count<winnerAddr.length; count++) {
 				dataStorage.set_playerChips(winnerAddr[count], dataStorage.playerChips(winnerAddr[count])+(pot / winnerAddr.length));
 			}
-			for (count=0; count < players.length; count++) {
+			for (uint8 count=0; count < players.length; count++) {
 				dataStorage.set_phase(players[count], 0);
 				dataStorage.set_agreed(players[count], false);
 				dataStorage.set_playerBets(players[count], 0);
@@ -99,10 +99,10 @@ contract PokerHandSignedActions {
 			address[] memory emptyAddrSet;
 			dataStorage.new_players(emptyAddrSet); //reset initReady
 			dataStorage.set_complete(false); //reset complete
-			dataStorage.new_players(players); //re-add players			
+			dataStorage.new_players(players); //re-add players
 		}
 	}
-	
+
 	/**
 	* Ends a poker hand data contract and pays out each player's 'playerChips' from the data contract's value. All agreed players
 	* must invoke this function before a payout is carried out.
@@ -112,20 +112,20 @@ contract PokerHandSignedActions {
 	function endContract(address dataAddr) public {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
 		if ((dataStorage.complete() == true) || (dataStorage.initReady() == false)) {
-			throw;
+			revert();
 		}
 		dataStorage.set_phase(msg.sender, 21);
-		dataStorage.set_lastActionBlock(block.number); //set last action block in case not all players end gracefully 
+		dataStorage.set_lastActionBlock(block.number); //set last action block in case not all players end gracefully
 		if (dataStorage.allPlayersAtPhase(21) || hasTimedOut(dataAddr)) {
 			for (uint count=0; count<dataStorage.num_Players(); count++) {
 				if (dataStorage.playerChips(dataStorage.players(count)) > 0) {
-					dataStorage.pay(dataStorage.players(count), dataStorage.playerChips(dataStorage.players(count)));					
+					dataStorage.pay(dataStorage.players(count), dataStorage.playerChips(dataStorage.players(count)));
 					dataStorage.set_playerChips(dataStorage.players(count), 0);
 				}
 			}
 		}
 	}
-	
+
 	 /**
 	 * Checks whether a specific poker hand data contract has timed out.
 	 *
@@ -133,10 +133,10 @@ contract PokerHandSignedActions {
 	 * this contract as an authorized contract since this is a public read-only operation.
 	 *
      * @return True if the hand/contract has timed out. A time out occurs when the current
-     * block number is higher than or equal to lastActionBlock + timeoutBlocks. If lastActionBlock 
+     * block number is higher than or equal to lastActionBlock + timeoutBlocks. If lastActionBlock
 	 * or timeoutBlocks is 0, false will always be returned
      */
-    function hasTimedOut(address dataAddr) public constant returns (bool) {
+    function hasTimedOut(address dataAddr) public view returns (bool) {
 		PokerHandData dataStorage = PokerHandData(dataAddr);
         if ((dataStorage.lastActionBlock()==0) || (dataStorage.timeoutBlocks() == 0)) {
             return (false);
@@ -147,7 +147,7 @@ contract PokerHandSignedActions {
             return (false);
         }
     }
-	
+
 	/**
 	* Activates the specified data contract by setting its "lastActionBlock" value to the current block.
 	* Once activated the data contract expects updates within the "timeoutBlocks" time limit and is
@@ -162,7 +162,7 @@ contract PokerHandSignedActions {
 			dataStorage.set_lastActionBlock(block.number);
 		}
 	}
-	
+
 	/**
 	* Processes a signed transaction received by the invoker from another player. Signed transactions are first
 	* checked for validity (to verify which adddress they were signed with), before being processed.
@@ -185,7 +185,7 @@ contract PokerHandSignedActions {
            }
        }
        if (!found) {
-           throw;
+           revert();
        }
        //TODO: implement signed transaction processing like the following:
        /*
@@ -194,57 +194,59 @@ contract PokerHandSignedActions {
             playerChips[account]-=txValue;
        }
        */
-    } 
-	
+    }
+
 	/**
-     * Returns the address associated with a supplied signature and input data (usually hashed value).
+   * Returns the address associated with a supplied signature and input data (usually hashed value).
 	 *
 	 * When verifying the signature for a transaction for this contract the "data" should be a SHA3 hash of a string that combines the following:
 	 * txType + txDelimiter + txValue + txDelimiter + txNonce + initBlock
-     * 
-     * The txType is the type of transaction being validated. Valid types include "B" (bet), "D" (fully-encrypted deck card), 
-     * "d" (partially-encrypted deck card), "C" (private card selection), or "c" (partially-decrypted card selection).
+   *
+   * The txType is the type of transaction being validated. Valid types include "B" (bet), "D" (fully-encrypted deck card),
+   * "d" (partially-encrypted deck card), "C" (private card selection), or "c" (partially-decrypted card selection).
 	 * The txValue is the value of the associated transaction. If it's a bet value (B) this value is in wei, otherwise this is a plaintext or
 	 * encrypted card value (depending on the txType).
 	 * The txNonce should match the nonce registered by the player when they agreed to the contract (nonces[account] == txNonce).
 	 * The initBlock value should match the "initBlock" variable set when the contract was initialized.
-     * 
-     * @param data The 32-byte input data that was signed by the associated signature. This is usually a
-     * sha3/keccak hash of some plaintext message.
-     * @param v The recovery value, calculated as the last byte of the full signature plus 27 (usually either 27 or
-     * 28)
-     * @param r The first 32 bytes of the signature.
-     * @param s The second 32 bytes of the signature.
+   *
+   * @param data The 32-byte input data that was signed by the associated signature. This is usually a
+   * sha3/keccak hash of some plaintext message.
+   * @param v The recovery value, calculated as the last byte of the full signature plus 27 (usually either 27 or
+   * 28)
+   * @param r The first 32 bytes of the signature.
+   * @param s The second 32 bytes of the signature.
 	 *
 	 * @return The address recovered from the signed data.
      */
-    function verifySignature(bytes32 data, uint8 v, bytes32 r, bytes32 s) public constant returns (address) {
+    function verifySignature(bytes32 data, uint8 v, bytes32 r, bytes32 s) public view returns (address) {
         return(ecrecover(data, v, r, s));
     }
-	
+
 	 /**
      * Converts a string input to a uint256 value. It is assumed that the input string is compatible with an unsigned
      * integer type up to 2^256-1 bits.
-     * 
+     *
      * @param input The string to convert to a uint256 value.
-     * 
+     *
      * @return A uint256 representation of the input string.
      */
-    function stringToUint256(string input) public returns (uint256 result) {
+    function stringToUint256(string memory input) public returns (uint256 result) {
       bytes memory inputBytes = bytes(input);
       for (uint count = 0; count < inputBytes.length; count++) {
-        if ((inputBytes[count] >= 48) && (inputBytes[count] <= 57)) {
+        bytes1 inputByte = inputBytes[count];
+        //if ((inputByte >= 48) && (inputByte <= 57)) {
+        if ((inputByte >= "a") && (inputByte <= "Z")) {
           result *= 10;
           result += uint(inputBytes[count]) - 48;
         }
       }
     }
-	
+
 	/**
      * Converts an input uint256 value to a bytes32 value.
-     * 
+     *
      * @param input The input uint256 value to convert to bytes32.
-     * 
+     *
      * @return The bytes32 representation of the input uint256 value.
      */
     function uintToBytes32(uint256 input) public returns (bytes32 result) {
@@ -259,15 +261,15 @@ contract PokerHandSignedActions {
         }
         return result;
     }
-    
+
     /**
      * Converts a bytes32 value to a string type.
-     * 
+     *
      * @param input The bytes32 input to convert to a string output.
-     * 
+     *
      * @return The string representation of the bytes32 input.
      */
-    function bytes32ToString(bytes32 input) public returns (string) {
+    function bytes32ToString(bytes32 input) public returns (string memory) {
         bytes memory byteStr = new bytes(32);
         uint numChars = 0;
         for (uint count = 0; count < 32; count++) {
@@ -278,17 +280,17 @@ contract PokerHandSignedActions {
             }
         }
         bytes memory outputBytes = new bytes(numChars);
-        for (count = 0; count < numChars; count++) {
+        for (uint8 count = 0; count < numChars; count++) {
             outputBytes[count] = byteStr[count];
         }
         return string(outputBytes);
     }
 }
 
-contract PokerHandData {    
+contract PokerHandData {
 	struct Card {
         uint index;
-        uint suit; 
+        uint suit;
         uint value;
     }
 	struct CardGroup {
@@ -323,8 +325,8 @@ contract PokerHandData {
     DecryptPrivateCardsStruct[] public privateDecryptCards;
     uint256[5] public publicCards;
 	mapping (address => uint256[5]) public publicDecryptCards;
-    mapping (address => Key[]) public playerKeys;    
-    mapping (address => uint[5]) public playerBestHands; 
+    mapping (address => Key[]) public playerKeys;
+    mapping (address => uint[5]) public playerBestHands;
     mapping (address => Card[]) public playerCards;
     mapping (address => uint256) public results;
     mapping (address => address) public declaredWinner;
@@ -339,8 +341,8 @@ contract PokerHandData {
 	bool public initReady;
     mapping (address => uint8) public phases;
 
-  	function PokerHandData() {}
-	function () {}
+  //	function PokerHandData() {}
+	function () external {}
 	modifier onlyAuthorized {
 		uint allowedContractsFound = 0;
         for (uint count=0; count<authorizedGameContracts.length; count++) {
@@ -349,30 +351,30 @@ contract PokerHandData {
             }
         }
         if (allowedContractsFound == 0) {
-             throw;
+             revert();
         }
         _;
 	}
 	function agreeToContract(uint256 nonce) payable public {}
 	function initialize(uint256 primeVal, uint256 baseCardVal, uint256 buyInVal, uint timeoutBlocksVal) public onlyAuthorized {}
-    function getPrivateDecryptCard(address sourceAddr, address targetAddr, uint cardIndex) constant public returns (uint256) {}
-    function allPlayersAtPhase(uint phaseNum) public constant returns (bool) {}
-    function num_Players() public constant returns (uint) {}
-	function num_Keys(address target) public constant returns (uint) {}
-	function num_PlayerCards(address target) public constant returns (uint) {}
-	function num_PrivateCards(address targetAddr) public constant returns (uint) {}
-	function num_PublicCards() public constant returns (uint) {}
-	function num_PrivateDecryptCards(address sourceAddr, address targetAddr) public constant returns (uint) {}
-	function num_winner() public constant returns (uint) {}
-	function setAuthorizedGameContracts (address[] contractAddresses) public {}
+  function getPrivateDecryptCard(address sourceAddr, address targetAddr, uint cardIndex) view public returns (uint256) {}
+    function allPlayersAtPhase(uint phaseNum) public view returns (bool) {}
+    function num_Players() public view returns (uint) {}
+	function num_Keys(address target) public view returns (uint) {}
+	function num_PlayerCards(address target) public view returns (uint) {}
+	function num_PrivateCards(address targetAddr) public view returns (uint) {}
+	function num_PublicCards() public view returns (uint) {}
+	function num_PrivateDecryptCards(address sourceAddr, address targetAddr) public view returns (uint) {}
+	function num_winner() public view returns (uint) {}
+	function setAuthorizedGameContracts (address[] memory contractAddresses) public {}
 	function add_playerCard(address playerAddress, uint index, uint suit, uint value) public onlyAuthorized {}
     function update_playerCard(address playerAddress, uint cardIndex, uint index, uint suit, uint value) public onlyAuthorized {}
     function set_validationIndex(address playerAddress, uint index) public onlyAuthorized {}
 	function set_result(address playerAddress, uint256 result) public onlyAuthorized {}
 	function set_complete (bool completeSet) public onlyAuthorized {}
 	function set_publicCard (uint256 card, uint index) public onlyAuthorized {}
-	function set_encryptedDeck (address fromAddr, uint256[] cards) public onlyAuthorized {}
-	function set_privateCards (address fromAddr, uint256[] cards) public onlyAuthorized {}
+	function set_encryptedDeck (address fromAddr, uint256[] memory cards) public onlyAuthorized {}
+	function set_privateCards (address fromAddr, uint256[] memory cards) public onlyAuthorized {}
 	function set_betPosition (uint betPositionVal) public onlyAuthorized {}
 	function set_bigBlindHasBet (bool bigBlindHasBetVal) public onlyAuthorized {}
 	function set_playerHasBet (address fromAddr, bool hasBet) public onlyAuthorized {}
@@ -382,19 +384,19 @@ contract PokerHandData {
 	function set_agreed (address fromAddr, bool agreedVal) public onlyAuthorized {}
 	function add_winner (address winnerAddress) public onlyAuthorized {}
 	function clear_winner () public onlyAuthorized {}
-	function new_players (address[] newPlayers) public onlyAuthorized {}
+	function new_players (address[] memory newPlayers) public onlyAuthorized {}
 	function set_phase (address fromAddr, uint8 phaseNum) public onlyAuthorized {}
 	function set_lastActionBlock(uint blockNum) public onlyAuthorized {}
-	function set_privateDecryptCards (address fromAddr, uint256[] cards, address targetAddr) public onlyAuthorized {}
-	function set_publicCards (address fromAddr, uint256[] cards) public onlyAuthorized {}
-	function set_publicDecryptCards (address fromAddr, uint256[] cards) public onlyAuthorized {}
+	function set_privateDecryptCards (address fromAddr, uint256[] memory cards, address targetAddr) public onlyAuthorized {}
+	function set_publicCards (address fromAddr, uint256[] memory cards) public onlyAuthorized {}
+	function set_publicDecryptCards (address fromAddr, uint256[] memory cards) public onlyAuthorized {}
 	function add_declaredWinner(address fromAddr, address winnerAddr) public onlyAuthorized {}
     function privateDecryptCardsIndex (address sourceAddr, address targetAddr) public onlyAuthorized returns (uint) {}
 	function set_playerBestHands(address fromAddr, uint cardIndex, uint256 card) public onlyAuthorized {}
-	function add_playerKeys(address fromAddr, uint256[] encKeys, uint256[] decKeys) public onlyAuthorized {}
+	function add_playerKeys(address fromAddr, uint256[] memory encKeys, uint256[] memory decKeys) public onlyAuthorized {}
 	function remove_playerKeys(address fromAddr) public onlyAuthorized {}
 	function set_challenger(address challengerAddr) public onlyAuthorized {}
 	function pay (address toAddr, uint amount) public onlyAuthorized returns (bool) {}
-	function publicDecryptCardsInfo() public constant returns (uint maxLength, uint playersAtMaxLength) {}
-    function length_encryptedDeck(address fromAddr) public constant returns (uint) {}
+	function publicDecryptCardsInfo() public view returns (uint maxLength, uint playersAtMaxLength) {}
+    function length_encryptedDeck(address fromAddr) public view returns (uint) {}
 }
