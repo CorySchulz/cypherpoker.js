@@ -255,14 +255,14 @@ contract PokerHandData {
 	*
 	* @return The number of cards stored for the target player in the 'privateCards' array.
 	*/
-	function num_PrivateCards(address targetAddr) public view returns (uint) {
+	function num_PrivateCards(address targetAddr) public returns (uint) {
 	    return (DataUtils.arrayLength2(privateCards[targetAddr]));
 	}
 
 	/**
 	* @return The number of cards stored in the 'publicCards' array.
 	*/
-	function num_PublicCards() public view returns (uint) {
+	function num_PublicCards() public returns (uint) {
 	    return (DataUtils.arrayLength5(publicCards));
 	}
 
@@ -274,7 +274,7 @@ contract PokerHandData {
 	*
 	* @return The number of partially-decrypted private cards stored for the 'targetAddr' player by the 'sourceAddr' player.
 	*/
-	function num_PrivateDecryptCards(address sourceAddr, address targetAddr) public view returns (uint) {
+	function num_PrivateDecryptCards(address sourceAddr, address targetAddr) public returns (uint) {
        for (uint8 count=0; count < privateDecryptCards.length; count++) {
            if ((privateDecryptCards[count].sourceAddr == sourceAddr) && (privateDecryptCards[count].targetAddr == targetAddr)) {
                return (privateDecryptCards[count].cards.length);
@@ -286,7 +286,7 @@ contract PokerHandData {
 	/**
 	* @return The number of addresses stored in the 'winner' array.
 	*/
-	function num_winner() public view returns (uint) {
+	function num_winner() public returns (uint) {
 	    return (winner.length);
 	}
 
@@ -735,7 +735,7 @@ contract PokerHandData {
 	* is the maximum length of 'publicDecryptCards' for all agreed players (some players may have stored fewer cards), and
 	* 'playersAtMaxLength' which is a count of players that have stored 'maxLength' cards in the 'publicDecryptCards' array.
 	*/
-	function publicDecryptCardsInfo() public view returns (uint maxLength, uint playersAtMaxLength) {
+	function publicDecryptCardsInfo() public returns (uint maxLength, uint playersAtMaxLength) {
         uint currentLength = 0;
         maxLength = 0;
         for (uint8 count=0; count < players.length; count++) {
@@ -760,7 +760,7 @@ contract PokerHandData {
 	*
 	* @return The number of elements stored by 'fromAddr' in the 'encryptedDeck' array.
 	*/
-	function length_encryptedDeck(address fromAddr) public view returns (uint) {
+	function length_encryptedDeck(address fromAddr) public returns (uint) {
         return (DataUtils.arrayLength52(encryptedDeck[fromAddr]));
     }
 

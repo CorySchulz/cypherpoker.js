@@ -218,7 +218,8 @@ contract PokerHandResolutions {
             dataStorage.set_phase(msg.sender, 19);
         }
         PokerHandValidator validator = PokerHandValidator(validatorAddr);
-        validator.challenge.gas(msg.gas-30000)(dataAddr, dataStorage.challenger());
+        //validator.challenge.gas(msg.gas-30000)(dataAddr, dataStorage.challenger());
+        validator.challenge.gas(gasleft()-30000)(dataAddr, dataStorage.challenger());
         dataStorage.set_lastActionBlock (block.number);
     }
 
@@ -302,7 +303,8 @@ contract PokerHandResolutions {
             dataStorage.set_challenger (msg.sender);
         }
 		  PokerHandValidator validator = PokerHandValidator(validatorAddr);
-      validator.validate.gas(msg.gas-30000)(dataAddr, msg.sender);
+      //validator.validate.gas(msg.gas-30000)(dataAddr, msg.sender);
+      validator.validate.gas(gasleft()-30000)(dataAddr, msg.sender);
 		  dataStorage.set_lastActionBlock (block.number);
     }
 

@@ -93,14 +93,14 @@ contract PokerHandStartup {
   	    dataContract.set_publicDecryptCards(dataContract.players(count), emptySet);
   	    dataContract.set_result(dataContract.players(count), 0);
   			dataContract.set_validationIndex(dataContract.players(count), 0);
-  			dataContract.add_declaredWinner(dataContract.players(count), 0);
+  			dataContract.add_declaredWinner(dataContract.players(count), address(0));
 	    }
 		  dataContract.set_bigBlindHasBet(false);
   		dataContract.set_pot(0);
   		dataContract.set_betPosition(0);
   		dataContract.clear_winner();
   	  dataContract.set_lastActionBlock(0);
-  		dataContract.set_privateDecryptCards(msg.sender, emptySet, 0x0);
+  		dataContract.set_privateDecryptCards(msg.sender, emptySet, address(0));
   		dataContract.set_publicCards(msg.sender, emptySet);
   		dataContract.set_complete(false);
   		address[] memory emptyAddrSet;
@@ -260,8 +260,8 @@ contract PokerHandStartup {
         if ((dataStorage.phases(msg.sender) != 6) && (cards.length != 1)) {
             revert();
         }
-		dataStorage.set_publicDecryptCards(msg.sender, cards);
-        var (maxLength, playersAtMaxLength) = dataStorage.publicDecryptCardsInfo();
+		    dataStorage.set_publicDecryptCards(msg.sender, cards);
+        (uint maxLength, uint playersAtMaxLength) = dataStorage.publicDecryptCardsInfo();
         if (playersAtMaxLength == (dataStorage.num_Players()-1)) {
             for (uint count=0; count < dataStorage.num_Players(); count++) {
                 dataStorage.set_phase(dataStorage.players(count), dataStorage.phases(dataStorage.players(count)) + 1);

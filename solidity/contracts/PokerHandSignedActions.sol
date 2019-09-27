@@ -222,14 +222,15 @@ contract PokerHandSignedActions {
         return(ecrecover(data, v, r, s));
     }
 
-	 /**
-     * Converts a string input to a uint256 value. It is assumed that the input string is compatible with an unsigned
+	   /**
+     * Converts numeric string input to a uint256 value. It is assumed that the input string is compatible with an unsigned
      * integer type up to 2^256-1 bits.
      *
      * @param input The string to convert to a uint256 value.
      *
      * @return A uint256 representation of the input string.
      */
+     /*
     function stringToUint256(string memory input) public returns (uint256 result) {
       bytes memory inputBytes = bytes(input);
       for (uint count = 0; count < inputBytes.length; count++) {
@@ -241,8 +242,9 @@ contract PokerHandSignedActions {
         }
       }
     }
+    */
 
-	/**
+	   /**
      * Converts an input uint256 value to a bytes32 value.
      *
      * @param input The input uint256 value to convert to bytes32.

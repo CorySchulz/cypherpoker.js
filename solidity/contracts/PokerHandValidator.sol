@@ -86,7 +86,7 @@ contract PokerHandValidator {
         //use pokerHandData.playerCards(lastSender, 0) to store decrypted card
         //reset values to prevent external invocations from non-contracts
         pokerHandData=PokerHandData(1);
-        lastSender=1;
+        lastSender=address(1);
     }
 
     /**
@@ -121,7 +121,7 @@ contract PokerHandValidator {
        validationIndex++;
        pokerHandData.set_validationIndex(lastSender, validationIndex);
        pokerHandData=PokerHandData(1);
-       lastSender=1;
+       lastSender=address(1);
        return (true);
     }
 
@@ -148,7 +148,7 @@ contract PokerHandValidator {
        for (uint count=0; count < pokerHandData.num_Players(); count++) {
            currentPlayer = pokerHandData.players(count);
            for (uint keyIndex=0; keyIndex<pokerHandData.num_Keys(currentPlayer); keyIndex++) {
-               var (encKey, decKey, mod) = pokerHandData.playerKeys(currentPlayer, keyIndex);
+              (uint256 encKey, uint256 decKey, uint256 mod) = pokerHandData.playerKeys(currentPlayer, keyIndex);
                selectedCard = modExp(selectedCard, decKey, mod);
             }
 			/*
@@ -171,7 +171,7 @@ contract PokerHandValidator {
      * index is updated with the validated tuple.
      */
     function validateCard(address target, uint cardIndex) private {
-        var (index, suit, value) = pokerHandData.playerCards(target, cardIndex);
+        (uint index, uint suit, uint value) = pokerHandData.playerCards(target, cardIndex);
         index=getCardIndex(index, pokerHandData.baseCard(), pokerHandData.prime());
         if ((index > 0) && (index < 53)) {
              pokerHandData.update_playerCard(target, cardIndex, index, (((index-1) / 13) + 1), (((index-1) % 13) + 1));
@@ -190,7 +190,7 @@ contract PokerHandValidator {
      */
     function generateScore(address target) private {
         for (uint count=0; count<pokerHandData.num_PlayerCards(target); count++) {
-             var (index, suit, value) = pokerHandData.playerCards(target, count);
+             (uint index, uint suit, uint value) = pokerHandData.playerCards(target, count);
              workCards[count] = Card(index, suit, value);
         }
         pokerHandData.set_result(target, calculateHandScore());
@@ -249,10 +249,10 @@ contract PokerHandValidator {
 	* @return index The index of the card as an offset minus 1 from the baseCard value (count of quadratic residues modulo prime). A 0
 	* is returned if the value isn't a quadratc residue modulo prime or if the index exceeds 52.
 	*/
-	function getCardIndex(uint256 value, uint256 baseCard, uint256 prime) public view returns (uint256 index) {
+	function getCardIndex(uint256 value, uint256 baseCard, uint256 prime) public returns (uint256 index) {
 		index = 1;
 		if (value == baseCard) {
-			return;
+			return (0);
 		}
 		index++;
 		uint256 baseVal = baseCard;
@@ -261,14 +261,14 @@ contract PokerHandValidator {
 			baseVal++;
 			if (modExp(baseVal, exp, prime) == 1) {
 				if (baseVal == value) {
-					return;
+					return (0);
 				} else {
 					index++;
 				}
 			}
 		}
 		index = 0;
-		return;
+		return (0);
 	}
 
 	/*
